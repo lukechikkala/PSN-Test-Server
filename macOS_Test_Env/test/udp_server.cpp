@@ -12,6 +12,7 @@
 #include <sys/socket.h>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 #define PORT 56565
 
@@ -26,7 +27,7 @@ void title()
 
 int main()
 {
-	int i = 1 ;
+	int i = 0 ;
 	uint64_t timestamp = 0 ;
 
 	title();
@@ -49,16 +50,26 @@ int main()
 		std::cerr << "!!!! Unable to create socket !!!!" << std::endl;
 		return -1;
 	}
+	std::cout << "Timestamp      i " << std::endl;
 	while( true )
 	{
-		if ( timestamp % 16 )
+		timestamp++ ;
+			std::cout	<< "\r"
+						<< std::setw(7)
+						<< std::setfill(' ')
+						<< timestamp
+						<< std::flush;
+
+		if ( timestamp % 10000 == 0 )
 		{
-			sendto( socketServer, message.c_str(), (int)message.length(), 0, reinterpret_cast<sockaddr *>( &add_LC ), sizeof( add_LC ) ) ;
-			// std::cout << "\rMessage(s) Sent: " << i;
-			std::cout << "Message : " << "\r" << i ;
+			std::cout	<< "\r"
+						<< std::setw(7)
+						<< std::setfill(' ')
+						<< i
+						<< std::flush;
 			i++ ;
+			sendto( socketServer, message.c_str(), (int)message.length(), 0, reinterpret_cast<sockaddr *>( &add_LC ), sizeof( add_LC ) ) ;
 		}
-		timestamp++;
-		std::this_thread::sleep_for(std::chrono::milliseconds( 5 ));
+		// std::this_thread::sleep_for(std::chrono::milliseconds( 5 ));
 	}
 }
