@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -19,102 +20,53 @@
 class udp_socket
 {
 public :
-	udp_socket()
+	udp_socket( void )
 	{
-		// ::LC:: UDP Socket for UNIX
-		struct sockaddr_in saddr = {
-			.sin_family = AF_INET,
-			.sin_addr.s_addr = INADDR_ANY,
-			.sin_port = htons( 56565 )
-		};
-
-		int option = 1;
-		int saddrSize = sizeof( saddr );
-		int socketServer = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
-		setsockopt(
-			socketServer,
-			SOL_SOCKET,
-			SO_REUSEADDR | SO_REUSEPORT,
-			&option,
-			sizeof( option )
-			);
-		
-		if( socketServer == -1 )
-			std::cerr << " !!  UNABLE TO CREATE SOCKET !! " << std::endl;
+		socket_ = socket( AF_INET , SOCK_DGRAM , IPPROTO_UDP ) ;
+		u_long arg = 1 ;
+		ioctl( socket_ , FIONBIO , &arg ) ;
+	}
+	~udp_socket( void )
+	{
+		std::cout << "~udp_socket() called :-)" << std::endl ; 
 	}
 
-	~udp_socket( void ){}
-
-	void GetIP_LC( const std::string & address, unsigned short port )
+	void GetIP_LC( const std::string &address , unsigned short port )
 	{
-		sockaddr_in add;
-		add.sin_family = AF_INET;
-		inet_pton( AF_INET, address.c_str(), &add.sin_addr.s_addr );
-		add.sin_port = htons( port );
+		sockaddr_in add ;
+		add.sin_family = AF_INET ;
+		inet_pton( AF_INET , address.c_str() , &add.sin_addr.s_addr ) ;
+		add.sin_port = htons( port ) ;
 
 		std::cout << " Destination IP   : " << address.c_str() << std::endl;
 		std::cout << " Destination Port : " << port << std::endl;
 	}
 
-	// bool send_message( const std::string & address , unsigned short port , const ::std::string & message )
-    // {
-	// 	struct sockaddr_in add = {
-	// 		 .sin_family		= AF_INET
-	// 		// ,.sin_addr.s_addr	= INADDR_ANY
-	// 		,.sin_port			= htons( port )
-	// 	} ;
-	// 	inet_pton( AF_INET, address.c_str(), &add.sin_addr.s_addr ) ;
+	bool send_message( const std::string &address , unsigned short port , const::std::string &message )
+	{
+		sockaddr_in add ;
+		add.sin_family = AF_INET ;
+		inet_pton( AF_INET , address.c_str() , &add.sin_addr.s_addr ) ;
+		add.sin_port = htons( port ) ;
 
-	// 	int option = 1 ;
-	// 	int saddrSize = sizeof( add ) ;
-	// 	int socketServer = socket( AF_INET, SOCK_DGRAM, 0 ) ;
-
-	// 	if ( sendto( socketServer , message.c_str() , (int)message.length() , 0 , reinterpret_cast<sockaddr *>( &add ) , sizeof( add ) ) )
-	// 		return true ;
-
-	// 	return false ;
-    // }
-
-	// bool enable_send_message_multicast( void ) 
-	// {
-		
-	// 	struct in_addr add ;
-	// 	add.s_addr = INADDR_ANY ;
-
-	// 	int result = setsockopt( socketServer , 
-	// 					   IPPROTO_IP , 
-	// 					   IP_MULTICAST_IF , 
-	// 					   (const char*)&add , 
-	// 					   sizeof( add ) ) ;
-	// 	return ( result != SO_ERROR ) ; 
-	// }
-
-	bool send_message( const std::string & address , unsigned short port , const ::std::string & message )
-    {
-        sockaddr_in add ;
-        add.sin_family = AF_INET ;
-        inet_pton( AF_INET , address.c_str() , &add.sin_addr.s_addr ) ;
-        add.sin_port = htons( port ) ;
-        
-		if ( sendto( socketServer , message.c_str() , (int)message.length() , 0 , reinterpret_cast<sockaddr *>( &add ) , sizeof( add ) ) > 0 )
+		if( sendto( socket_ , message.c_str() , (int)message.length() , 0 , reinterpret_cast<sockaddr*>( &add ) , sizeof( add ) ) > 0 )
 			return true ;
 
 		return false ;
-    }
+	}
 
-	bool enable_send_message_multicast( void ) 
+	bool enable_send_message_multicast( void )
 	{
 		struct in_addr add ;
 		add.s_addr = INADDR_ANY ;
 
-		int result = setsockopt( socketServer , 
-						IPPROTO_IP , 
-						IP_MULTICAST_IF , 
-						(const char*)&add , 
-						sizeof( add ) ) ;
-		return ( result != SO_ERROR ) ; 
+		int result = setsockopt( socket_ ,
+								 IPPROTO_IP ,
+								 IP_MULTICAST_IF ,
+								 (const char *)&add ,
+								 sizeof( add ) ) ;
+		return ( result != SO_ERROR ) ;
 	}
-
 private :
-	unsigned int socketServer ;
-};
+	unsigned int socket_ ;
+} ;
