@@ -11,23 +11,14 @@
 	by the PSN group.
 */
 
-#include "../include/psn_lib.hpp"
-#include "../include/utils/udp_socket.hpp"
-#include <cmath>
-#include <iostream>
-#include <list>
-#include <string>
-#include <iomanip>
+#include "PSN_Test_Server.hpp"
 
-#include <chrono>
-#include <thread>
-
-int main()
+int main( void )
 {
+	system("clear") ;
 	int i = 1;
-	int j = 1;
-	int DataPacketCounter = 1;
-	int InfoPacketCounter = 0;
+	int DataPacketCounter = 0;
+	int InfoPacketCounter = 1;
     //============================================================================================================================================================
 	// Session ???
     //============================================================================================================================================================
@@ -47,7 +38,11 @@ int main()
 	Tracker_LC[ 0 ] = ::psn::tracker( 0, TrackerName ) ;
 
     float orbit = 88.0f ;
-	float a, b, x, cb, sb;
+	float a ;
+	float b ;
+	float x ;
+	float cb ;
+	float sb ;
 	uint64_t timestamp = 0 ;
 
     //============================================================================================================================================================
@@ -87,6 +82,7 @@ int main()
 		sb	= ::std::sinf( a * x ) * b ;
 		Tracker_LC[ 0 ].set_pos( ::psn::float3( sb, cb, 0 ) ) ;
 
+		std::this_thread::sleep_for(std::chrono::milliseconds( 1 ));
 		//============================================================================================================================================================
 		// Send DATA
 		//============================================================================================================================================================
@@ -95,15 +91,16 @@ int main()
             ::std::list< ::std::string > data_packets = psn_encoder.encode_data( Tracker_LC , timestamp ) ;
             for ( auto it = data_packets.begin() ; it != data_packets.end() ; ++it )
             {
-                std::cout << "\r"
-                          << std::setw(7) << std::setfill(' ')
-                                           << DataPacketCounter
-                          << std::setw(10) << InfoPacketCounter
-                          << std::setw(15) << sb
-                          << std::setw(15) << cb
-                          << std::flush;
                     socket_server.send_message( ::psn::DEFAULT_UDP_MULTICAST_ADDR , ::psn::DEFAULT_UDP_PORT , *it ) ;
 					DataPacketCounter++ ;
+					std::cout << "\r"
+								<< std::setw(7)
+								<< std::setfill(' ')
+								<< DataPacketCounter
+								<< std::setw(10) << InfoPacketCounter
+								<< std::setw(15) << sb
+								<< std::setw(15) << cb
+								<< std::flush;
             }
 
        }
@@ -116,11 +113,10 @@ int main()
             ::std::list< ::std::string > info_packets = psn_encoder.encode_info( Tracker_LC , timestamp ) ;
             for ( auto it = info_packets.begin() ; it != info_packets.end() ; ++it )
 			{
-				InfoPacketCounter++;
                 socket_server.send_message( ::psn::DEFAULT_UDP_MULTICAST_ADDR , ::psn::DEFAULT_UDP_PORT , *it ) ;
+				InfoPacketCounter++;
 			}
         }
-        timestamp++ ; i++ ; j++ ;
-		// std::this_thread::sleep_for(std::chrono::milliseconds( 10 ));
+        timestamp++ ; i++ ;
     }
 }
