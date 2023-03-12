@@ -9,7 +9,7 @@ There is no movement along the Z-Axis; Z is set to `0`.
 	<img src="docs/PSN%20Test%20Server.png" width=50% height=50%>
 </p>
 
-**Output**
+**Output ( as seen on TouchDesigner )**
 
 <p align="center">
 	<img src="docs/PSN%20Test%20Server.gif" width=50% height=50%>
@@ -24,6 +24,10 @@ For Developer Notes, please see [Developer Notes](#developer-notes).
 
 ## Average Transmission Rates
 **Windows**
+```
+PSN DATA	: 29.37 Hz
+PSN INFO	: 00.47 Hz
+```
 
 **macOS**
 ```
